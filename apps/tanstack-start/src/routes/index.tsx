@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 
-import { useForm } from "@tanstack/react-form";
 import {
   useMutation,
   useQueryClient,
@@ -10,18 +9,14 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import type { RouterOutputs } from "@acme/api";
 
-import { CreatePostSchema } from "@acme/db/schema";
+import { useAppForm } from "@acme/shared/form";
 import { cn } from "@acme/ui";
 import { Button } from "@acme/ui/button";
-import {
-  Field,
-  FieldContent,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@acme/ui/field";
-import { Input } from "@acme/ui/input";
 import { toast } from "@acme/ui/toast";
+import {
+  createPostFormDefaultValues,
+  createPostFormSchema,
+} from "@acme/validators";
 
 import { AuthShowcase } from "~/component/auth-showcase";
 import { useTRPC } from "~/lib/trpc";
@@ -82,77 +77,60 @@ function CreatePostForm() {
     }),
   );
 
-  const form = useForm({
-    defaultValues: {
-      content: "",
-      title: "",
-    },
+  const form = useAppForm({
+    defaultValues: createPostFormDefaultValues,
     validators: {
-      onSubmit: CreatePostSchema,
+      onSubmit: createPostFormSchema,
     },
-    onSubmit: (data) => createPost.mutate(data.value),
+    onSubmit: (data) =>
+      createPost.mutate(createPostFormSchema.parse(data.value)),
   });
 
   return (
-    <form
-      className="w-full max-w-2xl"
-      onSubmit={(event) => {
-        event.preventDefault();
-        void form.handleSubmit();
-      }}
-    >
-      <FieldGroup>
-        <form.Field
-          name="title"
-          children={(field) => {
-            const isInvalid =
-              field.state.meta.isTouched && !field.state.meta.isValid;
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldContent>
-                  <FieldLabel htmlFor={field.name}>Bug Title</FieldLabel>
-                </FieldContent>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  aria-invalid={isInvalid}
-                  placeholder="Title"
-                />
-                {isInvalid && <FieldError errors={field.state.meta.errors} />}
-              </Field>
-            );
-          }}
-        />
-        <form.Field
-          name="content"
-          children={(field) => {
-            const isInvalid =
-              field.state.meta.isTouched && !field.state.meta.isValid;
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldContent>
-                  <FieldLabel htmlFor={field.name}>Content</FieldLabel>
-                </FieldContent>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  aria-invalid={isInvalid}
-                  placeholder="Content"
-                />
-                {isInvalid && <FieldError errors={field.state.meta.errors} />}
-              </Field>
-            );
-          }}
-        />
-      </FieldGroup>
-      <Button type="submit">Create</Button>
-    </form>
+    <form.AppForm>
+      <form
+        className="border-border/70 bg-card/70 w-full max-w-2xl rounded-2xl border p-5 shadow-sm backdrop-blur"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit();
+        }}
+      >
+        <div className="mb-5 space-y-1">
+          <p className="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
+            Ship a note
+          </p>
+          <h2 className="text-foreground text-xl font-semibold">
+            Create a post
+          </h2>
+        </div>
+        <div className="flex flex-col gap-5">
+          <form.AppField name="title">
+            {(field) => (
+              <field.TextField
+                label="Bug Title"
+                placeholder="A sharp, specific title"
+                description="Keep it punchy enough to scan in the feed."
+              />
+            )}
+          </form.AppField>
+          <form.AppField name="content">
+            {(field) => (
+              <field.TextareaField
+                label="Content"
+                placeholder="What happened? What should people know?"
+                description="Empty form state remains null until you type."
+              />
+            )}
+          </form.AppField>
+        </div>
+        <form.FormActions>
+          <form.ResetButton>Clear draft</form.ResetButton>
+          <form.SubmitButton pendingLabel="Creating...">
+            Create
+          </form.SubmitButton>
+        </form.FormActions>
+      </form>
+    </form.AppForm>
   );
 }
 

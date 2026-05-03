@@ -3,7 +3,8 @@ import type { TRPCRouterRecord } from "@trpc/server";
 import { z } from "zod/v4";
 
 import { eq } from "@acme/db";
-import { CreatePostSchema, Post } from "@acme/db/schema";
+import { Post } from "@acme/db/schema";
+import { createPostInputSchema } from "@acme/validators";
 
 import { protectedProcedure, publicProcedure } from "../trpc";
 
@@ -24,7 +25,7 @@ export const postRouter = {
     }),
 
   create: protectedProcedure
-    .input(CreatePostSchema)
+    .input(createPostInputSchema)
     .mutation(({ ctx, input }) => {
       return ctx.db.insert(Post).values(input);
     }),
