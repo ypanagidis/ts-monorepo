@@ -1,147 +1,266 @@
-# create-t3-turbo
+# Full-Stack TypeScript Template
 
-> [!NOTE]
->
-> create-t3-turbo now includes the option to use Tanstack Start for the web app!
+A pnpm/Turborepo template for building full-stack TypeScript applications with TanStack Start, Effect, Better Auth, Drizzle, tRPC, and OXC-powered tooling.
 
-## Installation
+This repo was started from [t3-oss/create-t3-turbo](https://github.com/t3-oss/create-t3-turbo). The original starter has been adapted substantially: this template adds an Effect Platform service, Effect-backed database access, modern OXC lint/format tooling, `tsgo` typechecking, TanStack Form helpers, and Drizzle 1.0 RC support.
 
-> [!NOTE]
->
-> Make sure to follow the system requirements specified in [`package.json#engines`](./package.json#L4) before proceeding.
-
-There are two ways of initializing an app using the `create-t3-turbo` starter. You can either use this repository as a template:
-
-![use-as-template](https://github.com/t3-oss/create-t3-turbo/assets/51714798/bb6c2e5d-d8b6-416e-aeb3-b3e50e2ca994)
-
-or use Turbo's CLI to init your project (use PNPM as package manager):
-
-```bash
-npx create-turbo@latest -e https://github.com/t3-oss/create-t3-turbo
-```
-
-## About
-
-Ever wondered how to migrate your T3 application into a monorepo? Stop right here! This is the perfect starter repo to get you running with the perfect stack!
-
-It uses [Turborepo](https://turborepo.com) and contains:
+## What Is Included
 
 ```text
-.github
-  └─ workflows
-        └─ CI with pnpm cache setup
-.vscode
-  └─ Recommended extensions and settings for VSCode users
 apps
-  └─ tanstack-start
-      ├─ Tanstack Start v1 (rc)
-      ├─ React 19
-      ├─ Tailwind CSS v4
-      └─ E2E Typesafe API Server & Client
+  core-api            Standalone Effect Platform HTTP API
+  tanstack-start      TanStack Start web app with tRPC, auth, forms, and query
 packages
-  ├─ api
-  │   └─ tRPC v11 router definition
-  ├─ auth
-  │   └─ Authentication using better-auth.
-  ├─ db
-  │   └─ Typesafe db calls using Drizzle & Postgres
-  └─ ui
-      └─ Start of a UI package for the webapp using shadcn-ui
+  api                 tRPC router package used by the web app
+  api-contracts       Effect HttpApi contracts for the standalone API
+  auth                Better Auth setup and schema generation
+  db                  Drizzle schema, clients, and Effect repository services
+  shared              Shared app helpers, including TanStack Form bindings
+  ui                  shadcn-style React UI package
+  validators          Shared Zod validation schemas
 tooling
-  ├─ oxlint
-  │   └─ shared, fine-grained, oxlint presets
-  ├─ oxfmt
-  │   └─ shared oxfmt configuration
-  ├─ tailwind
-  │   └─ shared tailwind theme and configuration
-  └─ typescript
-      └─ shared tsconfig you can extend from
+  github              Shared GitHub configuration package
+  oxfmt               Shared oxfmt configuration
+  oxlint              Shared oxlint configuration and local rules
+  tailwind            Shared Tailwind configuration
+  typescript          Shared strict TypeScript configuration
+.agents
+  skills              Local agent skills installed from mattpocock/skills
+skills-lock.json      Pinned skill sources and hashes
 ```
 
-> In this template, we use `@acme` as a placeholder for package names. As a user, you might want to replace it with your own organization or project name. You can use find-and-replace to change all the instances of `@acme` to something like `@my-company` or `@project-name`.
+The workspace still uses `@acme` as the placeholder package scope. Rename it when you turn the template into a real product.
 
-## Quick Start
+## Stack
 
-> **Note**
-> The [db](./packages/db) package is configured for the local Docker Postgres service in [compose.yaml](./compose.yaml). Use `POSTGRES_URL="postgres://postgres:postgres@localhost:5432/acme"` and `APP_URL="http://localhost:3001"` for local development.
+| Area            | Choice                                                                                                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------ |
+| Package manager | pnpm `10.19.0`                                                                                               |
+| Monorepo runner | Turborepo `^2.5.8`                                                                                           |
+| Runtime         | Node `^24.13.0`                                                                                              |
+| Web app         | TanStack Start `^1.167.61`, TanStack Router `^1.169.1`, React `19.1.4`, Vite `7.1.12`, Nitro `3.0.1-alpha.1` |
+| Data fetching   | TanStack Query `^5.100.8`, `@trpc/tanstack-react-query` `^11.7.1`, SuperJSON                                 |
+| Forms           | TanStack Form `1.29.1` with shared field/form components in `@acme/shared/form`                              |
+| API             | tRPC `^11.7.1` inside the web app and Effect HttpApi for the standalone API                                  |
+| Auth            | Better Auth `1.6.9` with the Drizzle adapter and Discord OAuth wiring                                        |
+| Database        | PostgreSQL 17 via Docker, Drizzle ORM `1.0.0-rc.1`, Drizzle Kit `1.0.0-rc.1`, Drizzle Zod                    |
+| Effect          | Effect `4.0.0-beta.60`, `@effect/platform-node`, `@effect/sql-pg`, Effect language service                   |
+| Validation      | Zod `4.4.2`                                                                                                  |
+| Styling         | Tailwind CSS `^4.1.16`, shadcn-style UI package, Base UI primitives                                          |
+| Linting         | oxlint `^1.62.0`, `oxlint-tsgolint` `^0.22.1`, shared repo rules                                             |
+| Formatting      | oxfmt `^0.47.0` with import sorting and Tailwind class sorting                                               |
+| Typechecking    | `tsgo` from `@typescript/native-preview` `7.0.0-dev.20260421.2`                                              |
 
-To get it running, follow the steps below:
+## Applications
 
-### 1. Setup dependencies
+### `apps/tanstack-start`
 
-> [!NOTE]
->
-> The repo contains a Tanstack Start web app.
+The web app runs on port `3001` in development. It uses TanStack Start with file-based routes and server routes for `/api/trpc/*` and `/api/auth/*`.
+
+Key pieces:
+
+- TanStack Router preloads route data with `defaultPreload: "intent"`.
+- TanStack Query is integrated with router SSR hydration through `@tanstack/react-router-ssr-query`.
+- tRPC is exposed from a TanStack Start server route and consumed through `@trpc/tanstack-react-query`.
+- Better Auth is exposed from `/api/auth/*` and currently wires Discord OAuth.
+- `@acme/shared/form` provides typed TanStack Form primitives for app forms.
+- `@acme/ui` provides the shared React component library.
+
+### `apps/core-api`
+
+The standalone API is an Effect Platform service. It defaults to port `4000` and is configured through Effect `Config`.
+
+Routes and docs:
+
+- `GET /` returns API metadata.
+- `GET /healthz` and `GET /readyz` return liveness/readiness status.
+- `/v1/posts` exposes list, get, create, and delete post endpoints.
+- `/openapi.json` exposes the OpenAPI document generated from Effect `HttpApi` contracts.
+- `/docs` serves Scalar API docs.
+
+The API composes Effect `Layer`s for config, CORS, route handlers, docs, the database, and repositories.
+
+## Packages
+
+### `@acme/api`
+
+tRPC router package for the TanStack Start app. It exposes `appRouter`, `AppRouter`, context helpers, and routers for auth and posts. Database work is delegated to Effect repository services and converted to Promises only at the tRPC boundary.
+
+### `@acme/api-contracts`
+
+Effect `HttpApi` contracts for the standalone `core-api`. Schemas are defined with Effect `Schema`, annotated for OpenAPI, and shared by the server implementation.
+
+### `@acme/auth`
+
+Better Auth configuration. It uses the Better Auth Drizzle adapter, Discord social login, and the OAuth proxy plugin. The auth schema is generated into `packages/db/src/auth-schema.ts`.
+
+### `@acme/db`
+
+Database package containing:
+
+- Drizzle schema for app tables and generated Better Auth tables.
+- A direct Drizzle client for libraries that need the standard adapter.
+- An Effect Drizzle client via `drizzle-orm/effect-postgres`.
+- `DbService`, `DbLive`, and `DbTestLive` layers.
+- Effect repository services such as `PostRepo` with typed domain errors.
+
+### `@acme/shared`
+
+Shared application utilities. Today this includes `@acme/shared/form`, a TanStack Form wrapper with reusable field components, submit/reset controls, and UI integration.
+
+### `@acme/ui`
+
+Shared React UI package with shadcn-style components, Base UI primitives, Tailwind helpers, charts, toasts, form fields, navigation, overlays, and layout primitives.
+
+### `@acme/validators`
+
+Shared Zod schemas used by forms and API boundaries. The current post form schema preserves nullable form state and transforms it into the stricter create-post input schema.
+
+## Tooling
+
+### oxlint
+
+Every package uses `oxlint --type-aware`. Shared config lives in `tooling/oxlint` and enables correctness/suspicious rules, TypeScript rules, import rules, React/a11y rules where needed, Turbo env checks, and a local `acme/no-process-env` rule to enforce validated environment access.
+
+### oxfmt
+
+Formatting uses `oxfmt`. Shared config lives in `tooling/oxfmt` and sets an 80-column print width, deterministic import ordering, `@acme` import groups, and Tailwind class sorting for `cn` and `cva`.
+
+### tsgo
+
+Typechecking uses `tsgo` through `@typescript/native-preview` for workspace scripts. The shared TypeScript config is strict, includes the Effect language service plugin, uses bundler module resolution, and keeps incremental build info under `.cache`.
+
+### Turborepo
+
+Root scripts fan out through Turbo. `lint` and `typecheck` depend on upstream `topo`/`build` tasks, while `dev`, `format:fix`, database push/studio, and `ui-add` are uncached.
+
+### Agent skills
+
+The repo includes local agent skills from [mattpocock/skills](https://github.com/mattpocock/skills), installed under `.agents/skills` and pinned in `skills-lock.json` with their source paths and hashes.
+
+Installed skills:
+
+- `caveman`
+- `diagnose`
+- `grill-me`
+- `grill-with-docs`
+- `improve-codebase-architecture`
+- `setup-matt-pocock-skills`
+- `tdd`
+- `to-issues`
+- `to-prd`
+- `triage`
+- `write-a-skill`
+- `zoom-out`
+
+## Requirements
+
+- Node `^24.13.0`
+- pnpm `^10.19.0`
+- Docker, if you want the local PostgreSQL service
+
+## Local Setup
+
+Install dependencies:
 
 ```bash
-# Install dependencies
-pnpm i
+pnpm install
+```
 
-# Configure environment variables
-# There is an `.env.example` in the root directory you can use for reference
+Create your local environment file:
+
+```bash
 cp .env.example .env
+```
 
-# Start Postgres
+Start PostgreSQL:
+
+```bash
 docker compose up -d postgres
+```
 
-# Push the Drizzle schema to the database
+Push the Drizzle schema:
+
+```bash
 pnpm db:push
 ```
 
-### 2. Generate Better Auth Schema
-
-This project uses [Better Auth](https://www.better-auth.com) for authentication. The auth schema needs to be generated using the Better Auth CLI before you can use the authentication features.
+Generate the Better Auth schema after auth model changes:
 
 ```bash
-# Generate the Better Auth schema
-pnpm --filter @acme/auth generate
+pnpm auth:generate
 ```
 
-This command runs the Better Auth CLI with the following configuration:
+Run the full workspace in watch mode:
 
-- **Config file**: `packages/auth/script/auth-cli.ts` - A CLI-only configuration file (isolated from src to prevent imports)
-- **Output**: `packages/db/src/auth-schema.ts` - Generated Drizzle schema for authentication tables
+```bash
+pnpm dev
+```
 
-The generation process:
+The TanStack Start app runs at `http://localhost:3001`. The standalone Effect API uses `PORT` or defaults to `http://localhost:4000`.
 
-1. Reads the Better Auth configuration from `packages/auth/script/auth-cli.ts`
-2. Generates the appropriate database schema based on your auth setup
-3. Outputs a Drizzle-compatible schema file to the `@acme/db` package
+## Environment
 
-> **Note**: The `auth-cli.ts` file is placed in the `script/` directory (instead of `src/`) to prevent accidental imports from other parts of the codebase. This file is exclusively for CLI schema generation and should **not** be used directly in your application. For runtime authentication, use the configuration from `packages/auth/src/index.ts`.
+`.env.example` documents the local defaults:
 
-For more information about the Better Auth CLI, see the [official documentation](https://www.better-auth.com/docs/concepts/cli#generate).
+```env
+POSTGRES_URL="postgres://postgres:postgres@localhost:5432/acme"
+APP_URL="http://localhost:3001"
+AUTH_SECRET="supersecret"
+AUTH_DISCORD_ID=""
+AUTH_DISCORD_SECRET=""
+```
 
-### 3a. When it's time to add a new UI component
+`apps/core-api` also reads `PORT` and `CORS_ALLOWED_ORIGINS`. `CORS_ALLOWED_ORIGINS="*"` is treated as open CORS by the current config.
 
-Run the `ui-add` script to add a new UI component using the interactive `shadcn/ui` CLI:
+## Scripts
+
+| Command              | What it does                                              |
+| -------------------- | --------------------------------------------------------- |
+| `pnpm dev`           | Runs workspace dev tasks through Turbo watch              |
+| `pnpm build`         | Builds packages/apps through Turbo                        |
+| `pnpm typecheck`     | Runs `tsgo` typechecking across the workspace             |
+| `pnpm lint`          | Runs type-aware oxlint across the workspace               |
+| `pnpm lint:fix`      | Runs oxlint with `--fix`                                  |
+| `pnpm format`        | Checks formatting with oxfmt                              |
+| `pnpm format:fix`    | Formats files with oxfmt                                  |
+| `pnpm db:push`       | Pushes the Drizzle schema to Postgres                     |
+| `pnpm db:studio`     | Opens Drizzle Studio                                      |
+| `pnpm auth:generate` | Regenerates Better Auth Drizzle schema                    |
+| `pnpm ui-add`        | Runs the shadcn CLI for `@acme/ui` and formats the result |
+| `pnpm lint:ws`       | Runs `sherif` workspace checks                            |
+
+## Database And Auth Flow
+
+Local Postgres is defined in `compose.yaml` as `postgres:17-alpine`, database `acme`, user `postgres`, password `postgres`, exposed on port `5432`.
+
+Drizzle owns the schema in `packages/db/src/schema.ts`. Better Auth generated tables live in `packages/db/src/auth-schema.ts` and are re-exported from the main schema file.
+
+Auth requests are handled by the TanStack Start server route at `/api/auth/*`. tRPC protected procedures use the auth session in context before running Effect-backed repository work.
+
+## Effect Usage
+
+Effect is used as the service and data-access backbone, not just as a utility dependency.
+
+- `apps/core-api` launches an Effect Platform HTTP server with `Layer.launch` and `NodeRuntime.runMain`.
+- `packages/api-contracts` defines HTTP contracts with Effect `HttpApi` and `Schema`.
+- `packages/db` exposes an Effect Drizzle client, database layers, transaction-scoped test layer, repository services, and typed repository errors.
+- `packages/api` keeps repository methods as Effects until tRPC handlers run them with the runtime provided in request context.
+
+When changing Effect code, consult `effect-solutions` first as required by this repo's agent instructions.
+
+## Adding Things
+
+Add a UI component:
 
 ```bash
 pnpm ui-add
 ```
 
-When the component(s) has been installed, you should be good to go and start using it in your app.
+Add a package:
 
-### 3b. When it's time to add a new package
+```bash
+pnpm turbo gen init
+```
 
-To add a new package, simply run `pnpm turbo gen init` in the monorepo root. This will prompt you for a package name as well as if you want to install any dependencies to the new package (of course you can also do this yourself later).
-
-The generator sets up the `package.json`, `tsconfig.json` and a `index.ts`, as well as configures all the necessary configurations for tooling around your package such as formatting, linting and typechecking. When the package is created, you're ready to go build out the package.
-
-## FAQ
-
-### Does this pattern leak backend code to my client applications?
-
-No, it does not. The `api` package should only be a production dependency in the application where it's served. Other apps you may add in the future should only add the `api` package as a dev dependency. This lets you have full typesafety in your client applications, while keeping your backend code safe.
-
-If you need to share runtime code between the client and server, such as input validation schemas, you can create a separate `shared` package for this and import it on both sides.
-
-## Deployment
-
-Deploy the TanStack Start app to a host that supports your runtime and configure the required environment variables, including `POSTGRES_URL` and the Better Auth values from `.env.example`.
-
-## References
-
-The stack originates from [create-t3-app](https://github.com/t3-oss/create-t3-app).
-
-A [blog post](https://jumr.dev/blog/t3-turbo) where I wrote how to migrate a T3 app into this.
+After adding env vars, update `.env.example` and `turbo.json` `globalEnv` if the value is read during Turbo tasks.
