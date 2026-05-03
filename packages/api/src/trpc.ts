@@ -7,33 +7,49 @@
  * The pieces you will need to use are documented accordingly near the end
  */
 import { initTRPC, TRPCError } from "@trpc/server";
+import { Effect, Layer, ManagedRuntime } from "effect";
 import superjson from "superjson";
 import { z, ZodError } from "zod/v4";
 
 import type { Auth } from "@acme/auth";
-import type { CreatePostInput, Post } from "@acme/db/repositories";
+import type { PostRepo } from "@acme/db/repositories";
 
-import { PostRepo, PostRepoRuntime } from "@acme/db/repositories";
+import { DbLive } from "@acme/db/effect-client";
+import { PostRepoLive } from "@acme/db/repositories";
 
 type AuthApi = Auth["api"];
 
-export interface PostRepoClient {
-  readonly listPosts: () => Promise<readonly Post[]>;
-  readonly getPostById: (id: string) => Promise<Post | undefined>;
-  readonly createPost: (input: CreatePostInput) => Promise<Post>;
-  readonly deletePost: (id: string) => Promise<void>;
-}
+// The api package is the application boundary for database-backed tRPC calls.
+// The db package exposes only services and layers; it does not decide how those
+// services are run inside a web framework.
+const apiLayer = PostRepoLive.pipe(Layer.provide(DbLive));
 
-const postRepoClient: PostRepoClient = {
-  listPosts: () =>
-    PostRepoRuntime.runPromise(PostRepo.use((repo) => repo.listPosts())),
-  getPostById: (id) =>
-    PostRepoRuntime.runPromise(PostRepo.use((repo) => repo.getPostById(id))),
-  createPost: (input) =>
-    PostRepoRuntime.runPromise(PostRepo.use((repo) => repo.createPost(input))),
-  deletePost: (id) =>
-    PostRepoRuntime.runPromise(PostRepo.use((repo) => repo.deletePost(id))),
-};
+// Keep one memo map for the long-lived api runtime so expensive layer resources,
+// especially the Postgres client pool below DbLive, are built once and reused.
+const apiMemoMap = Layer.makeMemoMapUnsafe();
+
+// tRPC is Promise-based, while repository code is Effect-based. This runtime is
+// the explicit bridge between those worlds and should be used only at request
+// boundaries, not from the db package itself.
+export type ApiRuntime = ManagedRuntime.ManagedRuntime<PostRepo, unknown>;
+
+// Shared runtime for the default app wiring. Tests or alternate hosts can pass a
+// different runtime into createTRPCContext without changing any router code.
+export const apiRuntime: ApiRuntime = ManagedRuntime.make(apiLayer, {
+  memoMap: apiMemoMap,
+});
+
+export interface TRPCContext {
+  // Keep authApi on ctx so auth routes can continue to call the Better Auth API.
+  readonly authApi: AuthApi;
+  // The session is loaded once while building context so protectedProcedure can
+  // refine it before individual routers run.
+  readonly session: Awaited<ReturnType<AuthApi["getSession"]>>;
+  // All Effect services needed by tRPC procedures are accessed through this
+  // runtime. The context carries the runtime, not promise-shaped repository
+  // wrappers, so repositories stay expressed as Effect services.
+  readonly runtime: ApiRuntime;
+}
 
 /**
  * 1. CONTEXT
@@ -48,36 +64,52 @@ const postRepoClient: PostRepoClient = {
  * @see https://trpc.io/docs/server/context
  */
 
-export const createTRPCContext = async (opts: {
+const createTRPCContextEffect = (opts: {
   headers: Headers;
   auth: { api: AuthApi };
-}) => {
-  const authApi = opts.auth.api;
-  const session = await authApi.getSession({
-    headers: opts.headers,
+  runtime: ApiRuntime;
+}) =>
+  Effect.gen(function* () {
+    const authApi = opts.auth.api;
+
+    // Better Auth still exposes a Promise API. Wrap it once here so context
+    // creation remains an Effect program until the final runtime.runPromise call.
+    const session = yield* Effect.tryPromise(() =>
+      authApi.getSession({
+        headers: opts.headers,
+      }),
+    ).pipe(Effect.orDie);
+
+    return {
+      authApi,
+      session,
+      // Pass the host-provided runtime through ctx so procedures can run repo
+      // effects at the tRPC edge while keeping domain/database code Effect-only.
+      runtime: opts.runtime,
+    };
   });
-  return {
-    authApi,
-    session,
-    postRepo: postRepoClient,
-  };
-};
+
+// tRPC asks createContext for a Promise. This is the single Promise boundary for
+// context creation; everything inside createTRPCContextEffect remains Effectful.
+export const createTRPCContext = (opts: {
+  headers: Headers;
+  auth: { api: AuthApi };
+  runtime: ApiRuntime;
+}) => opts.runtime.runPromise(createTRPCContextEffect(opts));
 /**
  * 2. INITIALIZATION
  *
  * This is where the trpc api is initialized, connecting the context and
  * transformer
  */
-const t = initTRPC.context<typeof createTRPCContext>().create({
+const t = initTRPC.context<TRPCContext>().create({
   transformer: superjson,
   errorFormatter: ({ shape, error }) => ({
     ...shape,
     data: {
       ...shape.data,
       zodError:
-        error.cause instanceof ZodError
-          ? z.flattenError(error.cause as ZodError<Record<string, unknown>>)
-          : null,
+        error.cause instanceof ZodError ? z.flattenError(error.cause) : null,
     },
   }),
 });

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
-import { appRouter, createTRPCContext } from "@acme/api";
+import { apiRuntime, appRouter, createTRPCContext } from "@acme/api";
 
 import { auth } from "~/auth/server";
 
@@ -14,6 +14,10 @@ const handler = (req: Request) =>
       createTRPCContext({
         auth: auth,
         headers: req.headers,
+        // The host app owns the runtime instance and passes it into api context.
+        // That keeps api testable and avoids hiding a database runtime inside
+        // individual routers or the db package.
+        runtime: apiRuntime,
       }),
     onError({ error, path }) {
       console.error(`>>> tRPC Error on '${path}'`, error);
