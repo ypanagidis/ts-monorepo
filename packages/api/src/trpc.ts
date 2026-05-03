@@ -11,10 +11,29 @@ import superjson from "superjson";
 import { z, ZodError } from "zod/v4";
 
 import type { Auth } from "@acme/auth";
+import type { CreatePostInput, Post } from "@acme/db/repositories";
 
-import { db } from "@acme/db/client";
+import { PostRepo, PostRepoRuntime } from "@acme/db/repositories";
 
 type AuthApi = Auth["api"];
+
+export interface PostRepoClient {
+  readonly listPosts: () => Promise<readonly Post[]>;
+  readonly getPostById: (id: string) => Promise<Post | undefined>;
+  readonly createPost: (input: CreatePostInput) => Promise<Post>;
+  readonly deletePost: (id: string) => Promise<void>;
+}
+
+const postRepoClient: PostRepoClient = {
+  listPosts: () =>
+    PostRepoRuntime.runPromise(PostRepo.use((repo) => repo.listPosts())),
+  getPostById: (id) =>
+    PostRepoRuntime.runPromise(PostRepo.use((repo) => repo.getPostById(id))),
+  createPost: (input) =>
+    PostRepoRuntime.runPromise(PostRepo.use((repo) => repo.createPost(input))),
+  deletePost: (id) =>
+    PostRepoRuntime.runPromise(PostRepo.use((repo) => repo.deletePost(id))),
+};
 
 /**
  * 1. CONTEXT
@@ -40,7 +59,7 @@ export const createTRPCContext = async (opts: {
   return {
     authApi,
     session,
-    db,
+    postRepo: postRepoClient,
   };
 };
 /**

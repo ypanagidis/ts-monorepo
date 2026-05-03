@@ -12,6 +12,14 @@
       "types": "./dist/client.d.ts",
       "default": "./src/client.ts"
     },
+    "./effect-client": {
+      "types": "./dist/effect-client.d.ts",
+      "default": "./src/effect-client.ts"
+    },
+    "./repositories": {
+      "types": "./dist/repositories/index.d.ts",
+      "default": "./src/repositories/index.ts"
+    },
     "./schema": {
       "types": "./dist/schema.d.ts",
       "default": "./src/schema.ts"
@@ -30,8 +38,11 @@
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
+    "@effect/sql-pg": "4.0.0-beta.60",
     "drizzle-orm": "1.0.0-rc.1",
     "drizzle-zod": "^0.8.3",
+    "effect": "4.0.0-beta.60",
+    "pg": "^8.20.0",
     "postgres": "^3.4.4",
     "zod": "catalog:"
   },
@@ -40,6 +51,7 @@
     "@acme/oxlint-config": "workspace:*",
     "@acme/tsconfig": "workspace:*",
     "@types/node": "catalog:",
+    "@types/pg": "^8.20.0",
     "@typescript/native-preview": "catalog:",
     "drizzle-kit": "1.0.0-rc.1",
     "oxfmt": "catalog:",

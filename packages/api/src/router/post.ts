@@ -2,35 +2,28 @@ import type { TRPCRouterRecord } from "@trpc/server";
 
 import { z } from "zod/v4";
 
-import { eq } from "@acme/db";
-import { Post } from "@acme/db/schema";
 import { createPostInputSchema } from "@acme/validators";
 
 import { protectedProcedure, publicProcedure } from "../trpc";
 
 export const postRouter = {
   all: publicProcedure.query(({ ctx }) => {
-    return ctx.db.query.Post.findMany({
-      orderBy: { id: "desc" },
-      limit: 10,
-    });
+    return ctx.postRepo.listPosts();
   }),
 
   byId: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(({ ctx, input }) => {
-      return ctx.db.query.Post.findFirst({
-        where: { id: input.id },
-      });
+      return ctx.postRepo.getPostById(input.id);
     }),
 
   create: protectedProcedure
     .input(createPostInputSchema)
     .mutation(({ ctx, input }) => {
-      return ctx.db.insert(Post).values(input);
+      return ctx.postRepo.createPost(input);
     }),
 
   delete: protectedProcedure.input(z.string()).mutation(({ ctx, input }) => {
-    return ctx.db.delete(Post).where(eq(Post.id, input));
+    return ctx.postRepo.deletePost(input);
   }),
 } satisfies TRPCRouterRecord;
