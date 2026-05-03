@@ -14,7 +14,7 @@
     "format": "oxfmt --check .",
     "format:fix": "oxfmt .",
     "lint": "oxlint --type-aware",
-    "generate": "dotenv -e ../../.env -- pnpx @better-auth/cli generate --config script/auth-cli.ts --output ../db/src/auth-schema.ts",
+    "generate": "dotenv -e ../../.env -- auth generate --yes --config script/auth-cli.ts --output ../db/src/auth-schema.ts",
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
@@ -27,8 +27,8 @@
     "@acme/oxfmt-config": "workspace:*",
     "@acme/oxlint-config": "workspace:*",
     "@acme/tsconfig": "workspace:*",
-    "@better-auth/cli": "catalog:",
     "@typescript/native-preview": "catalog:",
+    "auth": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "oxlint-tsgolint": "catalog:",

@@ -46,5 +46,5 @@ export function initAuth<
   return betterAuth(config);
 }
 
-export type Auth = ReturnType<typeof initAuth>;
+export type Auth = ReturnType<typeof initAuth<BetterAuthPlugin[]>>;
 export type Session = Auth["$Infer"]["Session"];

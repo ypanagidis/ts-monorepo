@@ -14,6 +14,8 @@ import type { Auth } from "@acme/auth";
 
 import { db } from "@acme/db/client";
 
+type AuthApi = Auth["api"];
+
 /**
  * 1. CONTEXT
  *
@@ -29,7 +31,7 @@ import { db } from "@acme/db/client";
 
 export const createTRPCContext = async (opts: {
   headers: Headers;
-  auth: Auth;
+  auth: { api: AuthApi };
 }) => {
   const authApi = opts.auth.api;
   const session = await authApi.getSession({
