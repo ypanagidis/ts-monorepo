@@ -30,15 +30,16 @@
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
-    "@vercel/postgres": "^0.10.0",
     "drizzle-orm": "1.0.0-rc.1",
     "drizzle-zod": "^0.8.3",
+    "postgres": "^3.4.4",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@acme/oxfmt-config": "workspace:*",
     "@acme/oxlint-config": "workspace:*",
     "@acme/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
     "@typescript/native-preview": "catalog:",
     "drizzle-kit": "1.0.0-rc.1",
     "oxfmt": "catalog:",

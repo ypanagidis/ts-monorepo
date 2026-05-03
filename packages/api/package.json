@@ -32,6 +32,7 @@
     "@acme/oxfmt-config": "workspace:*",
     "@acme/oxlint-config": "workspace:*",
     "@acme/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
     "@typescript/native-preview": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
