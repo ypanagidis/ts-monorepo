@@ -22,7 +22,7 @@ export function initAuth<
       provider: "pg",
     }),
     baseURL: options.baseUrl,
-    secret: options.secret,
+    ...(options.secret === undefined ? {} : { secret: options.secret }),
     plugins: [
       oAuthProxy({
         productionURL: options.productionUrl,

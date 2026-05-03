@@ -22,7 +22,9 @@
     "@acme/auth": "workspace:*",
     "@acme/db": "workspace:*",
     "@acme/validators": "workspace:*",
+    "@effect/platform": "^0.96.1",
     "@trpc/server": "catalog:",
+    "effect": "^3.21.2",
     "superjson": "2.2.3",
     "zod": "catalog:"
   },
