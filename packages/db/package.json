@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@vercel/postgres": "^0.10.0",
-    "drizzle-orm": "^0.44.7",
+    "drizzle-orm": "1.0.0-rc.1",
     "drizzle-zod": "^0.8.3",
     "zod": "catalog:"
   },
@@ -40,7 +40,7 @@
     "@acme/oxlint-config": "workspace:*",
     "@acme/tsconfig": "workspace:*",
     "@typescript/native-preview": "catalog:",
-    "drizzle-kit": "^0.31.5",
+    "drizzle-kit": "1.0.0-rc.1",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "oxlint-tsgolint": "catalog:",

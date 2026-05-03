@@ -2,7 +2,7 @@ import type { TRPCRouterRecord } from "@trpc/server";
 
 import { z } from "zod/v4";
 
-import { desc, eq } from "@acme/db";
+import { eq } from "@acme/db";
 import { CreatePostSchema, Post } from "@acme/db/schema";
 
 import { protectedProcedure, publicProcedure } from "../trpc";
@@ -10,7 +10,7 @@ import { protectedProcedure, publicProcedure } from "../trpc";
 export const postRouter = {
   all: publicProcedure.query(({ ctx }) => {
     return ctx.db.query.Post.findMany({
-      orderBy: desc(Post.id),
+      orderBy: { id: "desc" },
       limit: 10,
     });
   }),
@@ -19,7 +19,7 @@ export const postRouter = {
     .input(z.object({ id: z.string() }))
     .query(({ ctx, input }) => {
       return ctx.db.query.Post.findFirst({
-        where: eq(Post.id, input.id),
+        where: { id: input.id },
       });
     }),
 

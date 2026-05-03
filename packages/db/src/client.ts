@@ -1,10 +1,9 @@
 import { sql } from "@vercel/postgres";
+import { defineRelations } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/vercel-postgres";
 
 import * as schema from "./schema";
 
-export const db = drizzle({
-  client: sql,
-  schema,
-  casing: "snake_case",
-});
+const relations = defineRelations(schema);
+
+export const db = drizzle(sql, { relations });
