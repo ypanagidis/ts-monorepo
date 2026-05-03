@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "TanStack Start",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm dev",
+      "cwd": "${workspaceFolder}/apps/tanstack-start",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {}
+    }
+  ]
+}

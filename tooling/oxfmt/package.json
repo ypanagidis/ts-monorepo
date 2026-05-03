@@ -1,0 +1,23 @@
+{
+  "name": "@acme/oxfmt-config",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo node_modules",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "oxfmt": "catalog:"
+  },
+  "devDependencies": {
+    "@acme/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "typescript": "catalog:"
+  }
+}

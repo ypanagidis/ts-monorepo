@@ -1,0 +1,28 @@
+{
+  "name": "@acme/{{ name }}",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
+    "lint": "oxlint --type-aware",
+    "typecheck": "tsgo --noEmit --emitDeclarationOnly false"
+  },
+  "devDependencies": {
+    "@acme/oxfmt-config": "workspace:*",
+    "@acme/oxlint-config": "workspace:*",
+    "@acme/tsconfig": "workspace:*",
+    "@typescript/native-preview": "catalog:",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "oxlint-tsgolint": "catalog:",
+    "typescript": "catalog:"
+  }
+}

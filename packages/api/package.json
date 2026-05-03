@@ -1,0 +1,39 @@
+{
+  "name": "@acme/api",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
+    "lint": "oxlint --type-aware",
+    "typecheck": "tsgo --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@acme/auth": "workspace:*",
+    "@acme/db": "workspace:*",
+    "@acme/validators": "workspace:*",
+    "@trpc/server": "catalog:",
+    "superjson": "2.2.3",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@acme/oxfmt-config": "workspace:*",
+    "@acme/oxlint-config": "workspace:*",
+    "@acme/tsconfig": "workspace:*",
+    "@typescript/native-preview": "catalog:",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "oxlint-tsgolint": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "@acme/oxlint-config",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./acme-plugin": "./acme-plugin.js",
+    "./base": "./base.ts",
+    "./react": "./react.ts"
+  },
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo node_modules",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "eslint-plugin-turbo": "^2.5.8",
+    "oxlint": "catalog:"
+  },
+  "devDependencies": {
+    "@acme/oxfmt-config": "workspace:*",
+    "@acme/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "oxfmt": "catalog:",
+    "typescript": "catalog:"
+  }
+}

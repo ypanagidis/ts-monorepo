@@ -1,0 +1,49 @@
+{
+  "name": "@acme/db",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "default": "./src/client.ts"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "default": "./src/schema.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
+    "lint": "oxlint --type-aware",
+    "push": "pnpm with-env drizzle-kit push",
+    "studio": "pnpm with-env drizzle-kit studio",
+    "typecheck": "tsgo --noEmit --emitDeclarationOnly false",
+    "with-env": "dotenv -e ../../.env --"
+  },
+  "dependencies": {
+    "@vercel/postgres": "^0.10.0",
+    "drizzle-orm": "^0.44.7",
+    "drizzle-zod": "^0.8.3",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@acme/oxfmt-config": "workspace:*",
+    "@acme/oxlint-config": "workspace:*",
+    "@acme/tsconfig": "workspace:*",
+    "@typescript/native-preview": "catalog:",
+    "drizzle-kit": "^0.31.5",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "oxlint-tsgolint": "catalog:",
+    "typescript": "catalog:"
+  }
+}

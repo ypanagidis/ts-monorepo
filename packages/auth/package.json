@@ -1,0 +1,37 @@
+{
+  "name": "@acme/auth",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./middleware": "./src/middleware.ts",
+    "./client": "./src/client.ts",
+    "./env": "./env.ts"
+  },
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
+    "lint": "oxlint --type-aware",
+    "generate": "dotenv -e ../../.env -- pnpx @better-auth/cli generate --config script/auth-cli.ts --output ../db/src/auth-schema.ts",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "@acme/db": "workspace:*",
+    "@t3-oss/env-core": "^0.13.8",
+    "better-auth": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@acme/oxfmt-config": "workspace:*",
+    "@acme/oxlint-config": "workspace:*",
+    "@acme/tsconfig": "workspace:*",
+    "@better-auth/cli": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "oxlint-tsgolint": "catalog:",
+    "typescript": "catalog:"
+  }
+}
