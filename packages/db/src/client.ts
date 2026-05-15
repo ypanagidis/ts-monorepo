@@ -1,16 +1,18 @@
 import { defineRelations } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/mysql2";
 
 import * as schema from "./schema";
 
-const connectionString = process.env.POSTGRES_URL;
+const connectionString = process.env.MYSQL_URL;
 
 if (!connectionString) {
-  throw new Error("Missing POSTGRES_URL");
+  throw new Error("Missing MYSQL_URL");
 }
 
-const client = postgres(connectionString);
 const relations = defineRelations(schema);
 
-export const db = drizzle({ client, relations });
+export const db = drizzle(connectionString, {
+  relations,
+  schema,
+  mode: "default",
+});

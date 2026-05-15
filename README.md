@@ -43,8 +43,8 @@ The workspace still uses `@acme` as the placeholder package scope. Rename it whe
 | Forms           | TanStack Form `1.29.1` with shared field/form components in `@acme/shared/form`                              |
 | API             | tRPC `^11.7.1` inside the web app and Effect HttpApi for the standalone API                                  |
 | Auth            | Better Auth `1.6.9` with the Drizzle adapter and Discord OAuth wiring                                        |
-| Database        | PostgreSQL 17 via Docker, Drizzle ORM `1.0.0-rc.1`, Drizzle Kit `1.0.0-rc.1`, Drizzle Zod                    |
-| Effect          | Effect `4.0.0-beta.60`, `@effect/platform-node`, `@effect/sql-pg`, Effect language service                   |
+| Database        | MySQL 8 via Docker, local Drizzle ORM build, Drizzle Kit `1.0.0-rc.1`, Drizzle Zod                    |
+| Effect          | Effect `4.0.0-beta.60`, `@effect/platform-node`, `@effect/sql-mysql2`, Effect language service               |
 | Validation      | Zod `4.4.2`                                                                                                  |
 | Styling         | Tailwind CSS `^4.1.16`, shadcn-style UI package, Base UI primitives                                          |
 | Linting         | oxlint `^1.62.0`, `oxlint-tsgolint` `^0.22.1`, shared repo rules                                             |
@@ -100,7 +100,7 @@ Database package containing:
 
 - Drizzle schema for app tables and generated Better Auth tables.
 - A direct Drizzle client for libraries that need the standard adapter.
-- An Effect Drizzle client via `drizzle-orm/effect-postgres`.
+- An Effect Drizzle client via `drizzle-orm/effect-mysql2`.
 - `DbService`, `DbLive`, and `DbTestLive` layers.
 - Effect repository services such as `PostRepo` with typed domain errors.
 
@@ -173,10 +173,10 @@ Create your local environment file:
 cp .env.example .env
 ```
 
-Start PostgreSQL:
+Start MySQL:
 
 ```bash
-docker compose up -d postgres
+docker compose up -d mysql
 ```
 
 Push the Drizzle schema:
@@ -204,7 +204,7 @@ The TanStack Start app runs at `http://localhost:3001`. The standalone Effect AP
 `.env.example` documents the local defaults:
 
 ```env
-POSTGRES_URL="postgres://postgres:postgres@localhost:5432/acme"
+MYSQL_URL="mysql://root:mysql@localhost:3306/acme"
 APP_URL="http://localhost:3001"
 AUTH_SECRET="supersecret"
 AUTH_DISCORD_ID=""
@@ -224,7 +224,7 @@ AUTH_DISCORD_SECRET=""
 | `pnpm lint:fix`      | Runs oxlint with `--fix`                                  |
 | `pnpm format`        | Checks formatting with oxfmt                              |
 | `pnpm format:fix`    | Formats files with oxfmt                                  |
-| `pnpm db:push`       | Pushes the Drizzle schema to Postgres                     |
+| `pnpm db:push`       | Pushes the Drizzle schema to MySQL                     |
 | `pnpm db:studio`     | Opens Drizzle Studio                                      |
 | `pnpm auth:generate` | Regenerates Better Auth Drizzle schema                    |
 | `pnpm ui-add`        | Runs the shadcn CLI for `@acme/ui` and formats the result |
@@ -232,7 +232,7 @@ AUTH_DISCORD_SECRET=""
 
 ## Database And Auth Flow
 
-Local Postgres is defined in `compose.yaml` as `postgres:17-alpine`, database `acme`, user `postgres`, password `postgres`, exposed on port `5432`.
+Local MySQL is defined in `compose.yaml` as `mysql:8`, database `acme`, root password `mysql`, exposed on port `3306`.
 
 Drizzle owns the schema in `packages/db/src/schema.ts`. Better Auth generated tables live in `packages/db/src/auth-schema.ts` and are re-exported from the main schema file.
 

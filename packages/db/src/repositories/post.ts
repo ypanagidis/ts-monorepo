@@ -67,10 +67,10 @@ const mapPostRepoError = (
   });
 };
 
-const withPostRepoError = <A>(
+const withPostRepoError = <A, E, R>(
   operation: PostRepoOperation,
-  effect: Effect.Effect<A, unknown>,
-): Effect.Effect<A, PostRepoError> => {
+  effect: Effect.Effect<A, E, R>,
+): Effect.Effect<A, PostRepoError, R> => {
   // Drizzle's Effect adapter already returns Effects. This helper only changes
   // the error channel; it does not execute the database operation.
   return effect.pipe(
@@ -114,31 +114,45 @@ export const PostRepoLive = Layer.effect(
           db.query.Post.findMany({
             orderBy: { id: "desc" },
             limit: 10,
-          }),
+          }).execute() as Effect.Effect<readonly Post[], unknown>,
         ),
 
       getPostById: (id) =>
         withPostRepoError(
           "getPostById",
           // Use findFirst so missing rows become undefined instead of an error.
-          db.query.Post.findFirst({ where: { id } }),
+          db.query.Post.findFirst({ where: { id } }).execute() as Effect.Effect<
+            Post | undefined,
+            unknown
+          >,
         ),
 
       createPost: (input) =>
         withPostRepoError(
           "createPost",
           Effect.gen(function* () {
-            // returning() should produce the inserted row. Treat an empty result
-            // as an invariant violation because callers expect a created Post.
-            const [created] = yield* db
+            // MySQL does not support `returning()`, so use Drizzle's generated
+            // id helper and load the row after insert.
+            const [createdId] = yield* db
               .insert(PostTable)
               .values(input)
-              .returning();
+              .$returningId() as Effect.Effect<Array<{ id: string }>, unknown>;
+
+            if (createdId === undefined) {
+              return yield* new PostRepoInvariantError({
+                operation: "createPost",
+                message: "Failed to create post.",
+              });
+            }
+
+            const created = yield* db.query.Post.findFirst({
+              where: { id: createdId.id },
+            }).execute() as Effect.Effect<Post | undefined, unknown>;
 
             if (created === undefined) {
               return yield* new PostRepoInvariantError({
                 operation: "createPost",
-                message: "Failed to create post.",
+                message: "Failed to load created post.",
               });
             }
 
@@ -151,7 +165,14 @@ export const PostRepoLive = Layer.effect(
           "deletePost",
           // Deletes are fire-and-forget from the API perspective; callers only
           // need to know whether the Effect failed.
-          db.delete(PostTable).where(eq(PostTable.id, id)).pipe(Effect.asVoid),
+          (
+            db
+              .delete(PostTable)
+              .where(eq(PostTable.id, id)) as unknown as Effect.Effect<
+              unknown,
+              unknown
+            >
+          ).pipe(Effect.asVoid),
         ),
     } satisfies PostRepoService);
   }),
