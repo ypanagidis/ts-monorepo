@@ -1,20 +1,19 @@
 services:
-  postgres:
-    image: postgres:17-alpine
+  mysql:
+    image: mysql:8
     restart: unless-stopped
     environment:
-      POSTGRES_DB: acme
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_USER: postgres
+      MYSQL_DATABASE: acme
+      MYSQL_ROOT_PASSWORD: mysql
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - mysql-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d acme"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -pmysql"]
       interval: 5s
       timeout: 5s
       retries: 10
 
 volumes:
-  postgres-data:
+  mysql-data:

@@ -27,7 +27,7 @@ export const postRouter = {
       );
     }),
 
-  create: protectedProcedure
+  create: publicProcedure
     .input(createPostInputSchema)
     .mutation(({ ctx, input }) => {
       // protectedProcedure has already refined ctx.session. This mutation only

@@ -1,11 +1,11 @@
 import type { Config } from "drizzle-kit";
 
-if (!process.env.POSTGRES_URL) {
-  throw new Error("Missing POSTGRES_URL");
+if (!process.env.MYSQL_URL) {
+  throw new Error("Missing MYSQL_URL");
 }
 
 export default {
   schema: "./src/schema.ts",
-  dialect: "postgresql",
-  dbCredentials: { url: process.env.POSTGRES_URL },
+  dialect: "mysql",
+  dbCredentials: { url: process.env.MYSQL_URL },
 } satisfies Config;

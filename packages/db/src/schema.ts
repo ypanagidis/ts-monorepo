@@ -1,16 +1,15 @@
-import { sql } from "drizzle-orm";
-import { snakeCase } from "drizzle-orm/pg-core";
+import { snakeCase } from "drizzle-orm/mysql-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
+import { randomUUID } from "node:crypto";
+
 export const Post = snakeCase.table("post", (t) => ({
-  id: t.uuid().notNull().primaryKey().defaultRandom(),
+  id: t.varchar({ length: 36 }).notNull().primaryKey().$defaultFn(randomUUID),
   title: t.varchar({ length: 256 }).notNull(),
   content: t.text().notNull(),
   createdAt: t.timestamp().defaultNow().notNull(),
-  updatedAt: t
-    .timestamp({ mode: "date", withTimezone: true })
-    .$onUpdateFn(() => sql`now()`),
+  updatedAt: t.timestamp().defaultNow().onUpdateNow().notNull(),
 }));
 
 export const CreatePostSchema = createInsertSchema(Post, {

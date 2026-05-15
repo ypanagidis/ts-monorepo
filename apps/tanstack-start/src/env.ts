@@ -17,7 +17,7 @@ export const env = createEnv({
    */
   server: {
     APP_URL: z.url().default("http://localhost:3001"),
-    POSTGRES_URL: z.url(),
+    MYSQL_URL: z.url(),
   },
 
   /**

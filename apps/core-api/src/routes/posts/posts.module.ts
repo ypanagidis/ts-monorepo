@@ -18,7 +18,7 @@ const toApiPost = (post: DbPost): ApiPost => ({
   title: post.title,
   content: post.content,
   createdAt: post.createdAt,
-  updatedAt: post.updatedAt ?? null,
+  updatedAt: post.updatedAt,
 });
 
 const toServiceUnavailable = (
